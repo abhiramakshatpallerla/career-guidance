@@ -1,15 +1,49 @@
-// JavaScript for active navigation link highlighting
+// No JavaScript needed for active navigation link highlighting as there are no navigation links.
+
 document.addEventListener('DOMContentLoaded', () => {
-    const navLinks = document.querySelectorAll('nav ul li a');
-    const currentPath = window.location.pathname.split('/').pop();
+    // Language Switcher Logic
+    const languageSelect = document.getElementById('language-select');
+    let currentLang = localStorage.getItem('lang') || 'en';
 
-    navLinks.forEach(link => {
-        if (link.getAttribute('href') === currentPath) {
-            link.classList.add('active');
-        }
-    });
+    if (languageSelect) {
+        languageSelect.value = currentLang;
+        languageSelect.addEventListener('change', (event) => {
+            currentLang = event.target.value;
+            localStorage.setItem('lang', currentLang);
+            translatePage();
+        });
+    }
 
-    // Scroll Reveal Logic
+    function translatePage() {
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            const key = element.getAttribute('data-i18n');
+            if (translations[currentLang] && translations[currentLang][key]) {
+                if (key === "copyright") {
+                    element.innerHTML = translations[currentLang][key];
+                } else {
+                    element.textContent = translations[currentLang][key];
+                }
+            }
+        });
+        // Update placeholders and titles if any
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+            const key = element.getAttribute('data-i18n-placeholder');
+            if (translations[currentLang] && translations[currentLang][key]) {
+                element.placeholder = translations[currentLang][key];
+            }
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(element => {
+            const key = element.getAttribute('data-i18n-title');
+            if (translations[currentLang] && translations[currentLang][key]) {
+                element.title = translations[currentLang][key];
+            }
+        });
+    }
+
+    // Initial translation on load
+    translatePage();
+
+    // Scroll Reveal Logic (kept if there are still scroll-reveal elements in the main content)
     const scrollRevealElements = document.querySelectorAll('.scroll-reveal');
 
     const observerOptions = {
@@ -43,4 +77,34 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     };
+    
+    // Apply scroll-reveal to new static sections on load
+    applyScrollRevealToCards('subject-choices-10th', '.subject-choice-card');
+    applyScrollRevealToCards('polytechnic-courses', '.polytechnic-card');
+
+    const scrollElements = document.querySelectorAll('.scroll-reveal');
+
+    const elementInView = (el, dividend = 1) => {
+        const elementTop = el.getBoundingClientRect().top;
+        return (
+            elementTop <=
+            (window.innerHeight || document.documentElement.clientHeight) / dividend
+        );
+    };
+
+    const displayScrollElement = (element) => {
+        element.classList.add('active');
+    };
+
+    const handleScrollAnimation = () => {
+        scrollElements.forEach((el) => {
+            if (elementInView(el, 1.25)) {
+                displayScrollElement(el);
+            }
+        });
+    };
+
+    window.addEventListener('scroll', handleScrollAnimation);
+    handleScrollAnimation(); // Initial check on load
+
 });
